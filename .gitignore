@@ -3,3 +3,4 @@
 config.txt
 .idea/
 network/network0.go
+config.json

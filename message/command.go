@@ -2,6 +2,7 @@ package message
 
 import (
 	"fmt"
+	"github.com/Akizon77/TakakuraAnzu/config"
 	"github.com/Akizon77/TakakuraAnzu/data/sql/TakakuraAnzu/whitelist"
 	messageLogger "github.com/Akizon77/TakakuraAnzu/log"
 	"github.com/Akizon77/TakakuraAnzu/minecraft"
@@ -102,7 +103,7 @@ func mcsCommand(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 	msg.ParseMode = tgbotapi.ModeMarkdown
 	server := message.CommandArguments()
 	if server == "" {
-		server = "cc.akz.moe"
+		server = config.Config.MinecraftServer
 	}
 	info := minecraft.GetPrettiedString(server)
 	msg.Text = info
