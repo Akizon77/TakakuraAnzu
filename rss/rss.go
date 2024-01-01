@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Akizon77/TakakuraAnzu/data/sql/rss_subs"
+	messageLogger "github.com/Akizon77/TakakuraAnzu/log"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/mmcdole/gofeed"
@@ -126,11 +127,8 @@ func RefreshAndSend(chatID int64, bot *tgbotapi.BotAPI) error {
 }
 func SendRssUpdate(chatID int64, items []rss.Item, bot *tgbotapi.BotAPI) {
 	for _, item := range items {
-		msg := tgbotapi.NewMessage(chatID, fmt.Sprintf(item.Title+"\n"+item.Link))
-		_, err := bot.Send(msg)
-		if err != nil {
-			return
-		}
+		msg := tgbotapi.NewMessage(chatID, fmt.Sprintf("#RSS "+item.Title+"\n"+item.Link))
+		messageLogger.SendMsg(msg, bot)
 	}
 }
 func Refresh(chatID int64, bot *tgbotapi.BotAPI) ([]rss.Item, error) {
@@ -142,7 +140,7 @@ func Refresh(chatID int64, bot *tgbotapi.BotAPI) ([]rss.Item, error) {
 		log.Println(err)
 		if bot != nil {
 			msg := tgbotapi.NewMessage(chatID, fmt.Sprintf("无法更新"+err.Error()))
-			bot.Send(msg)
+			messageLogger.SendMsg(msg, bot)
 		}
 		return nil, err
 	}
@@ -172,7 +170,7 @@ func Refresh(chatID int64, bot *tgbotapi.BotAPI) ([]rss.Item, error) {
 			log.Println(chatID, "出现错误！\n尝试解析RSS失败\n地址：", "\n详细信息：\n", link, err.Error())
 			if bot != nil {
 				msg := tgbotapi.NewMessage(chatID, fmt.Sprintf("无法更新 %s\n 因为%s", link, err.Error()))
-				bot.Send(msg)
+				messageLogger.SendMsg(msg, bot)
 			}
 			//return nil, errors.New("出现错误！\n尝试解析RSS失败\n地址：" + link + "\n详细信息：\n" + err.Error())
 		}
@@ -213,7 +211,6 @@ func Refresh(chatID int64, bot *tgbotapi.BotAPI) ([]rss.Item, error) {
 	return allNewItems, nil
 }
 func RefreshAll(bot *tgbotapi.BotAPI) error {
-	log.Println("开始处理所有人的订阅")
 	users := AllUser()
 	for _, user := range users {
 		items, err := Refresh(user, nil)

@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"github.com/Akizon77/TakakuraAnzu/data/sql/TakakuraAnzu/whitelist"
 	messageLogger "github.com/Akizon77/TakakuraAnzu/log"
+	"github.com/Akizon77/TakakuraAnzu/minecraft"
 	"github.com/Akizon77/TakakuraAnzu/network"
 	"github.com/Akizon77/TakakuraAnzu/rss"
 	"github.com/Akizon77/TakakuraAnzu/status"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"log"
+	"strconv"
 	"strings"
 )
 
@@ -27,31 +29,41 @@ func RunCommand(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 	}
 	switch message.Command() {
 	case "start":
+		messageLogger.Debug("startCommand")
 		go startCommand(message, bot)
 	case "refresh":
+		messageLogger.Debug("refreshCommand")
 		go refreshCommand(message, bot)
 	case "chatid":
+		messageLogger.Debug("chatIdCommand")
 		go chatIdCommand(message, bot)
 	case "status":
+		messageLogger.Debug("statusCommand")
 		go statusCommand(message, bot)
 	case "ip":
+		messageLogger.Debug("ipCommand")
 		go ipCommand(message, bot)
 	case "ddns":
+		messageLogger.Debug("ddnsCommand")
 		go ddnsCommand(message, bot)
 	case "add":
+		messageLogger.Debug("addCommand")
 		go addCommand(message, bot)
 	case "remove":
+		messageLogger.Debug("removeCommand")
 		go removeCommand(message, bot)
 	case "sql":
+		messageLogger.Debug("sqlCommand")
 		go sqlCommand(message, bot)
 	case "list":
+		messageLogger.Debug("listCommand")
 		go listCommand(message, bot)
-	case "addWhitelist":
-		go addWhitelistCommand(message, bot)
-	case "delWhitelist":
-		go delWhitelistCommand(message, bot)
-	case "dropWhitelist":
-		go dropWhitelistCommand(message, bot)
+	case "whitelist":
+		messageLogger.Debug("whitelistCommand")
+		go whitelistCommand(message, bot)
+	case "mcs":
+		messageLogger.Debug("mcsCommand")
+		go mcsCommand(message, bot)
 	default:
 		msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("杏铃不认识 %s 哦", message.Command()))
 		msg.ReplyToMessageID = message.MessageID
@@ -59,14 +71,50 @@ func RunCommand(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 		messageLogger.SendMsg(msg, bot)
 	}
 }
+func whitelistCommand(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
+	msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Usage:\nadd - 添加白名单\ndel - 删除白名单\ndrop - 清空白名单"))
+	msg.ReplyToMessageID = message.MessageID
+	msg.DisableWebPagePreview = true
+	msg.ParseMode = tgbotapi.ModeMarkdown
 
+	arg := message.CommandArguments()
+	args := strings.Split(arg, " ")
+	if len(args) <= 1 {
+		messageLogger.SendMsg(msg, bot)
+		return
+	}
+	message.Text = "/whitelist " + args[1]
+	switch args[0] {
+	case "add":
+		addWhitelistCommand(message, bot)
+	case "del":
+		delWhitelistCommand(message, bot)
+	case "drop":
+		dropWhitelistCommand(message, bot)
+	default:
+		messageLogger.SendMsg(msg, bot)
+	}
+}
+func mcsCommand(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
+	msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Error"))
+	msg.ReplyToMessageID = message.MessageID
+	msg.DisableWebPagePreview = true
+	msg.ParseMode = tgbotapi.ModeMarkdown
+	server := message.CommandArguments()
+	if server == "" {
+		server = "cc.akz.moe"
+	}
+	info := minecraft.GetPrettiedString(server)
+	msg.Text = info
+	messageLogger.SendMsg(msg, bot)
+}
 func dropWhitelistCommand(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 	msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Error"))
 	msg.ReplyToMessageID = message.MessageID
 	msg.DisableWebPagePreview = true
 	msg.ParseMode = tgbotapi.ModeMarkdown
 
-	if message.Chat.ID != 1977354088 {
+	if message.From.ID != 1977354088 {
 		msg.Text = "可惜，只有 @AkizonChan 能drop白名单啦，有需要的话就快去找他吧"
 		messageLogger.SendMsg(msg, bot)
 		return
@@ -86,12 +134,23 @@ func delWhitelistCommand(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 	msg.DisableWebPagePreview = true
 	msg.ParseMode = tgbotapi.ModeMarkdown
 
-	if message.Chat.ID != 1977354088 {
+	if message.From.ID != 1977354088 {
 		msg.Text = "可惜，只有 @AkizonChan 能移除白名单啦，有需要的话就快去找他吧"
 		messageLogger.SendMsg(msg, bot)
 		return
 	}
-	err := whitelist.Remove(message.Chat.ID)
+	if message.CommandArguments() == "" {
+		msg.Text = "你都不告诉我要把谁删除白名单"
+		messageLogger.SendMsg(msg, bot)
+		return
+	}
+	arg, err := strconv.ParseInt(message.CommandArguments(), 10, 64)
+	if err != nil {
+		msg.Text = "这好像不是一个ChatID？"
+		messageLogger.SendMsg(msg, bot)
+		return
+	}
+	err = whitelist.Remove(arg)
 	if err != nil {
 		msg.Text = fmt.Sprintf(err.Error())
 		messageLogger.SendMsg(msg, bot)
@@ -108,17 +167,26 @@ func addWhitelistCommand(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 	msg.DisableWebPagePreview = true
 	msg.ParseMode = tgbotapi.ModeMarkdown
 
-	if message.Chat.ID != 1977354088 {
+	if message.From.ID != 1977354088 {
 		msg.Text = "可惜，只有 @AkizonChan 能添加白名单啦，有需要的话就快去找他吧"
 		messageLogger.SendMsg(msg, bot)
 		return
 	}
-
-	var err error = nil
+	if message.CommandArguments() == "" {
+		msg.Text = "你都不告诉我要把谁添加到白名单"
+		messageLogger.SendMsg(msg, bot)
+		return
+	}
+	arg, err := strconv.ParseInt(message.CommandArguments(), 10, 64)
+	if err != nil {
+		msg.Text = "这好像不是一个ChatID？"
+		messageLogger.SendMsg(msg, bot)
+		return
+	}
 	if message.Chat.IsGroup() || message.Chat.IsSuperGroup() {
-		err = whitelist.Add(message.Chat.ID, message.Chat.Title)
+		err = whitelist.Add(arg, message.Chat.Title)
 	} else {
-		err = whitelist.Add(message.Chat.ID, message.From.UserName)
+		err = whitelist.Add(arg, message.From.UserName)
 	}
 	if err != nil {
 		msg.Text = fmt.Sprintf("无法添加，因为 %s", err.Error())

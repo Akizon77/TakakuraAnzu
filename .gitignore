@@ -2,3 +2,4 @@
 *.db
 config.txt
 .idea/
+network/network.go

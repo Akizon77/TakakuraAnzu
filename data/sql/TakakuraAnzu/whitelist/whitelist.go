@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/Akizon77/TakakuraAnzu/data/sql/rss_subs"
 	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"strings"
@@ -69,7 +68,7 @@ func Clear() error {
 }
 func Remove(chatID int64) error {
 	query := fmt.Sprintf("DELETE FROM '%s' WHERE id = '%d'", table, chatID)
-	_, err := rss_subs.Db.Exec(query)
+	_, err := db.Exec(query)
 	if err != nil {
 		if strings.Contains(err.Error(), "no such") {
 			return errors.New("这个ID本身就不在白名单哦")
