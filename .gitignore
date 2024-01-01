@@ -2,4 +2,4 @@
 *.db
 config.txt
 .idea/
-network/network.go
+network/network0.go

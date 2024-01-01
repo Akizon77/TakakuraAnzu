@@ -9,7 +9,8 @@ import (
 	"strings"
 )
 
-func GetIPv4() (string, error) {
+// Remove _ in func name
+func GetIPv4_() (string, error) {
 	resp, err := http.Get("https://ddns.oray.com/checkip")
 	if err != nil {
 		return "发送请求失败", err
@@ -28,7 +29,7 @@ func GetIPv4() (string, error) {
 	ip := re.FindString(str)
 	return ip, nil
 }
-func UpdateDDNS(ip string) (string, error) {
+func UpdateDDNS_(ip string) (string, error) {
 	res, err := PUT(ip)
 	if err != nil {
 		return "", err
@@ -39,6 +40,6 @@ func UpdateDDNS(ip string) (string, error) {
 	return res, nil
 }
 
-func PUT(ip string) (string, error) {
+func PUT_(ip string) (string, error) {
 	return "The source code contains the private key, you need to manually complete this code", errors.New("The source code contains the private key, you need to manually complete this code")
 }
