@@ -55,7 +55,10 @@ func main() {
 	}
 	// 测试用 记得删
 	go loadTGBot()
-	go loadQQBot()
+	if config.Config.EnableQQBot {
+		messageLogger.Info("正在启动QQ机器人")
+		go loadQQBot()
+	}
 	// 永远卡死主线程
 	for {
 		ch := make(chan int)

@@ -8,6 +8,7 @@ type ConfigStruct struct {
 	DDNS_Interface        string `json:"DDNS_Interface"`
 	DDNS_Email            string `json:"DDNS_Email"`
 	DDNS_APIKEY           string `json:"DDNS_APIKEY"`
+	EnableQQBot           bool   `json:"useQQ"`
 	QQ_App_id             uint64 `json:"QQ_App_Id"`
 	QQ_Secret             string `json:"QQ_Secret"`
 	QQ_Token              string `json:"QQ_Token"`
