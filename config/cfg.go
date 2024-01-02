@@ -32,5 +32,6 @@ func init() {
 		log.Error("无法解析配置文件 "+configPath, err)
 		return
 	}
+	log.Debug("Config：" + string(cfg))
 
 }

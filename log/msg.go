@@ -8,6 +8,9 @@ import (
 
 var DebugMode bool = false
 
+type Logger interface {
+}
+
 // 发送消息并记录，如出现空地址请排查是否启用的 Markdown 语法但标记不能匹配的清空
 func SendMsg(c tgbotapi.Chattable, bot *tgbotapi.BotAPI) tgbotapi.Message {
 	message, err := bot.Send(c)
