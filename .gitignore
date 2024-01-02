@@ -1,6 +1,10 @@
 *.exe
 *.db
+# old config file
 config.txt
+# Jetbrains profile
 .idea/
-network/network0.go
+# Config file
 config.json
+# Linux build output
+TakakuraAnzu

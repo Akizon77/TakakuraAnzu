@@ -50,7 +50,7 @@ func main() {
 	bot, err := tgbotapi.NewBotAPI(token)
 	//无法实例化bot中断程序
 	if err != nil {
-		log.Println("无法创建Telegram Bot实例")
+		log.Println("无法创建Telegram Bot实例,请检查配置文件config.json")
 		log.Panic(err)
 		return
 	}
