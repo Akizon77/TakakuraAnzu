@@ -8,15 +8,16 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log"
+	"strings"
+	"time"
+
 	"github.com/Akizon77/TakakuraAnzu/log/logger"
 	"github.com/Akizon77/TakakuraAnzu/qqbot/command"
 	"github.com/tencent-connect/botgo/dto"
 	qevent "github.com/tencent-connect/botgo/event"
 	qtoken "github.com/tencent-connect/botgo/token"
 	qws "github.com/tencent-connect/botgo/websocket"
-	"log"
-	"strings"
-	"time"
 
 	"github.com/Akizon77/TakakuraAnzu/config"
 	"github.com/Akizon77/TakakuraAnzu/data/sql/TakakuraAnzu"
@@ -35,7 +36,7 @@ const (
 var (
 	token           = config.Config.Token
 	interval        = config.Config.Interval
-	Version  string = ""
+	Version  string = "1.4.3"
 )
 
 func main() {
