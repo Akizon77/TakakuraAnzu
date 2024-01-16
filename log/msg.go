@@ -3,7 +3,7 @@ package log
 import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"log"
+	"time"
 )
 
 var DebugMode bool = false
@@ -57,7 +57,7 @@ func Log(message *tgbotapi.Message) {
 }
 
 func logs(msg string, header string) {
-	log.Println(fmt.Sprintf("| %s | %s", header, msg))
+	fmt.Printf("[%s][%s]%s\n", time.Now().Format(time.DateTime), header, msg)
 }
 func EnableDebugMode() {
 	DebugMode = true

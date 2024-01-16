@@ -3,7 +3,7 @@ package message
 import (
 	"fmt"
 	"github.com/Akizon77/TakakuraAnzu/config"
-	"github.com/Akizon77/TakakuraAnzu/data/sql/TakakuraAnzu/whitelist"
+	"github.com/Akizon77/TakakuraAnzu/data/whitelist"
 	messageLogger "github.com/Akizon77/TakakuraAnzu/log"
 	"github.com/Akizon77/TakakuraAnzu/minecraft"
 	"github.com/Akizon77/TakakuraAnzu/network"
@@ -53,9 +53,9 @@ func RunCommand(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 	case "remove":
 		messageLogger.Debug("removeCommand")
 		go removeCommand(message, bot)
-	case "sql":
-		messageLogger.Debug("sqlCommand")
-		go sqlCommand(message, bot)
+	//case "sql":
+	//	messageLogger.Debug("sqlCommand")
+	//	go sqlCommand(message, bot)
 	case "list":
 		messageLogger.Debug("listCommand")
 		go listCommand(message, bot)
@@ -211,7 +211,7 @@ func listCommand(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 	subs, err := rss.ListAllSubs(message.Chat.ID)
 	if err != nil {
 		if strings.Contains(err.Error(), "no such") {
-			msg.Text = "你还没有添加订阅呢"
+			msg.Text = "还没有订阅呢，要不要用 /add 添加一个？"
 		} else {
 			msg.Text = fmt.Sprintf("啊呀！出错了\n%s", err.Error())
 		}
@@ -226,41 +226,28 @@ func listCommand(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 }
 
 // 远程执行SQL指令
-func sqlCommand(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
-	msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("已执行，未发生错误"))
-	msg.ReplyToMessageID = message.MessageID
-
-	if !whitelist.IsWhitelist(message.Chat.ID) {
-		msg.Text = noPermission
-		messageLogger.SendMsg(msg, bot)
-		return
-	}
-
-	arg := message.CommandArguments()
-	if arg == "" {
-		msg.Text = "呀呀呀，你没有带执行语句"
-	}
-	_, i := rss.SQLRun(arg)
-	if i != nil {
-		msg.Text = "好像不太对呢\n" + i.Error()
-	}
-	messageLogger.SendMsg(msg, bot)
-}
 
 // 添加数据库的RSS订阅
 func addCommand(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 	msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("已经加上了哦"))
 	msg.ReplyToMessageID = message.MessageID
+	msg.ParseMode = tgbotapi.ModeMarkdown
 
 	arg := message.CommandArguments()
 	if arg == "" {
-		msg.Text = "请在add后添加订阅地址"
+		msg.Text = fmt.Sprint("或许可以订阅空气呢\nUsage:`/add title link`")
 		messageLogger.SendMsg(msg, bot)
 		return
 	}
-	log.Println("指令参数：" + arg)
-
-	err := rss.AddRssForChatID(message.Chat.ID, arg)
+	//TODO 处理title
+	args := strings.Split(arg, " ")
+	messageLogger.Debug(fmt.Sprint(args))
+	if len(args) < 2 {
+		msg.Text = fmt.Sprint("好像识别不出来捏\nUsage:`/add title link`")
+		messageLogger.SendMsg(msg, bot)
+		return
+	}
+	err := rss.AddRssForChatID(message.Chat.ID, args[0], args[1])
 	if err != nil {
 		msg.Text = fmt.Sprintf("无法添加订阅\n" + err.Error())
 	}
@@ -272,16 +259,17 @@ func addCommand(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 func removeCommand(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 	msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("已经帮你删掉啦"))
 	msg.ReplyToMessageID = message.MessageID
+	msg.ParseMode = tgbotapi.ModeMarkdown
 
 	arg := message.CommandArguments()
 	if arg == "" {
-		msg.Text = "你都不说要我删掉什么"
+		msg.Text = fmt.Sprint("杏铃不知道你要删掉什么哦\nUsage:`/remove link`")
 		messageLogger.SendMsg(msg, bot)
 		return
 	}
 	log.Println("指令参数：" + arg)
 
-	err := rss.RemoveRssForChatID(message.Chat.ID, arg, bot)
+	err := rss.RemoveRssForChatID(message.Chat.ID, arg)
 	if err != nil {
 		msg.Text = fmt.Sprintf("删不掉呜呜呜\n" + err.Error())
 	}
@@ -291,16 +279,15 @@ func removeCommand(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 
 // 手动刷新Rss订阅
 func refreshCommand(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
-	err := rss.RefreshAndSend(message.Chat.ID, bot)
+	msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("已经尝试刷新了哦"))
+	msg.ReplyToMessageID = message.MessageID
+	msg.ParseMode = tgbotapi.ModeHTML
+	update, err := rss.Update(message.Chat.ID)
 	if err != nil {
-		log.Println(err)
-		msg := tgbotapi.NewMessage(message.Chat.ID, "好像刷不出来")
-		if strings.Contains(err.Error(), "no such table") {
-			msg.Text = "使用/add 添加一个吧，还没用订阅呢"
-		}
-		msg.ReplyToMessageID = message.MessageID
-		messageLogger.SendMsg(msg, bot)
+		msg.Text = fmt.Sprint(err)
 	}
+	msg.Text = update
+	messageLogger.SendMsg(msg, bot)
 }
 
 // 欢迎界面，同时将chatID记录到控制台

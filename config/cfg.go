@@ -11,7 +11,7 @@ const (
 )
 
 var (
-	Config = &ConfigStruct{Interval: 10, EnableQQBot: false}
+	Config = &ConfigStruct{Interval: 10}
 )
 
 func init() {
